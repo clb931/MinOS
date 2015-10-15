@@ -1,0 +1,284 @@
+#include "kernel/common.h"
+#include "kernel/portio.h"
+#include "kernel/keyboard.h"
+#include <stdio.h>
+
+
+//#define SC_00	0x00
+#define SC_N1	0x01
+#define SC_N2	0x02
+#define SC_N3	0x03
+#define SC_N4	0x04
+#define SC_N5	0x05
+#define SC_N6	0x06
+#define SC_N7	0x07
+#define SC_N8	0x08
+#define SC_N9	0x09
+#define SC_N0	0x0A
+#define SC_NDC	0x0B
+#define SC_NRT	0x0C
+#define SC_NAD	0x0D
+#define SC_NSB	0x0E
+#define SC_NML	0x0F
+
+#define SC_ESC	0x10
+#define SC_F1	0x11
+#define SC_F2	0x12
+#define SC_F3	0x13
+#define SC_F4	0x14
+#define SC_F5	0x15
+#define SC_F6	0x16
+#define SC_F7	0x17
+#define SC_F8	0x18
+#define SC_F9	0x19
+#define SC_F10	0x1A
+#define SC_F11	0x1B
+#define SC_F12	0x1C
+//#define SC_1D	0x1D
+#define SC_NDV	0x1B
+#define SC_NLK	0x1F
+
+#define SC_TIC	0x20
+#define SC_1	0x21
+#define SC_2	0x22
+#define SC_3	0x23
+#define SC_4	0x24
+#define SC_5	0x25
+#define SC_6	0x26
+#define SC_7	0x27
+#define SC_8	0x28
+#define SC_9	0x29
+#define SC_0	0x2A
+#define SC_SB	0x2B
+#define SC_AD	0x2C
+#define SC_BSL	0x2D
+#define SC_BSP	0x2E
+//#define SC_2F	0x2F
+
+#define SC_TAB	0x30
+#define SC_Q	0x31
+#define SC_W	0x32
+#define SC_E	0x33
+#define SC_R	0x34
+#define SC_T	0x35
+#define SC_Y	0x36
+#define SC_U	0x37
+#define SC_I	0x38
+#define SC_O	0x39
+#define SC_P	0x3A
+#define SC_OSB	0x3B
+#define SC_CSB	0x3C
+#define SC_SLP	0x3D
+#define SC_WKE	0x3E
+#define SC_PWR	0x3F
+
+#define SC_CLK	0x40
+#define SC_A	0x41
+#define SC_S	0x42
+#define SC_D	0x43
+#define SC_F	0x44
+#define SC_G	0x45
+#define SC_H	0x46
+#define SC_J	0x47
+#define SC_K	0x48
+#define SC_L	0x49
+#define SC_SCL	0x4A
+#define SC_SQT	0x4B
+#define SC_RET	0x4C
+#define SC_SCR	0x4D
+#define SC_SLK	0x4E
+#define SC_BRK	0x4F
+
+#define SC_LSH	0x50
+#define SC_Z	0x51
+#define SC_X	0x52
+#define SC_C	0x53
+#define SC_V	0x54
+#define SC_B	0x55
+#define SC_N	0x56
+#define SC_M	0x57
+#define SC_COM	0x58
+#define SC_PRD	0x59
+#define SC_FSL	0x5A
+#define SC_RSH	0x5B
+//#define SC_5C	0x5C
+#define SC_INS	0x5D
+#define SC_HME	0x5E
+#define SC_PGU	0x5F
+
+#define SC_LCT	0x60
+#define SC_S1	0x61
+#define SC_LAL	0x62
+#define SC_SPC	0x63
+#define SC_RAL	0x64
+#define SC_S2	0x65
+#define SC_S3	0x66
+#define SC_RCT	0x67
+// #define SC_68	0x68
+#define SC_UP	0x69
+#define SC_LFT	0x6A
+#define SC_DWN	0x6B
+#define SC_RHT	0x6C
+#define SC_DEL	0x6D
+#define SC_END	0x6E
+#define SC_PGD	0x6F
+
+
+const DWORD scancode_set1[] = {
+	0x0000,	SC_ESC,	SC_1,	SC_2,	SC_3,	SC_4,	SC_5,	SC_6,
+	SC_7,	SC_8,	SC_9,	SC_0,	SC_SB,	SC_AD,	SC_BSP,	SC_TAB,
+	SC_Q,	SC_W,	SC_E,	SC_R,	SC_T,	SC_Y,	SC_U,	SC_I,
+	SC_O,	SC_P,	SC_OSB,	SC_CSB,	SC_RET,	SC_LCT,	SC_A,	SC_S,
+	SC_D,	SC_F,	SC_G,	SC_H,	SC_J,	SC_K,	SC_L,	SC_SCL,
+	SC_SQT,	SC_TIC,	SC_LSH,	SC_BSL,	SC_Z,	SC_X,	SC_C,	SC_V,
+	SC_B,	SC_N,	SC_M,	SC_COM,	SC_PRD,	SC_FSL,	SC_RSH,	SC_NML,
+	SC_LAL,	SC_SPC,	SC_CLK,	SC_F1,	SC_F2,	SC_F3,	SC_F4,	SC_F5,
+	SC_F6,	SC_F7,	SC_F8,	SC_F9,	SC_F10,	SC_NLK,	SC_SLK,	SC_N7,
+	SC_N8,	SC_N9,	SC_NSB,	SC_N4,	SC_N5,	SC_N6,	SC_NAD,	SC_N1,
+	SC_N2,	SC_N3,	SC_N0,	SC_NDC,	0x0000,	0x0000,	0x0000,	SC_F11,
+	SC_F12,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	SC_NRT,	SC_RCT,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	SC_NDV,	0x0000,	0x0000,
+	SC_RAL,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	SC_HME,
+	SC_UP,	SC_PGU,	0x0000,	SC_LFT,	0x0000,	SC_RHT,	0x0000,	SC_END,
+	SC_DWN,	SC_PGD,	SC_INS,	SC_DEL,	0x0000,	0x0000,	0x0000,	SC_S1,
+	SC_S2,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+};
+const DWORD scancode_set2[] = {
+	0x0000,	SC_F9,	0x0000,	SC_F5,	SC_F3,	SC_F1,	SC_F2,	SC_F12,
+	0x0000,	SC_F10,	SC_F8,	SC_F6,	SC_F4,	SC_TAB,	SC_TIC,	0x0000,
+	0x0000,	SC_LAL,	SC_LSH,	0x0000,	SC_LCT,	SC_Q,	SC_1,	0x0000,
+	0x0000,	0x0000,	SC_Z,	SC_S,	SC_A,	SC_W,	SC_E,	0x0000,
+	0x0000,	SC_C,	SC_X,	SC_D,	SC_E,	SC_4,	SC_3,	0x0000,
+	0x0000,	SC_SPC,	SC_V,	SC_F,	SC_T,	SC_R,	SC_5,	0x0000,
+	0x0000,	SC_N,	SC_B,	SC_H,	SC_G,	SC_Y,	SC_6,	0x0000,
+	0x0000,	0x0000,	SC_M,	SC_J,	SC_U,	SC_7,	SC_8,	0x0000,
+	0x0000,	SC_COM,	SC_K,	SC_I,	SC_O,	SC_0,	SC_9,	0x0000,
+	0x0000,	SC_PRD,	SC_FSL,	SC_L,	SC_SCL,	SC_P,	SC_SB,	0x0000,
+	0x0000,	0x0000,	SC_SQT,	0x0000,	SC_OSB,	SC_AD,	0x0000,	0x0000,
+	SC_CLK,	SC_RSH,	SC_RET,	SC_CSB,	SC_BSL,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	SC_BSP,	0x0000,	0x0000,	SC_N1,	0x0000,	SC_N4,
+	SC_N7,	0x0000,	0x0000,	0x0000,	SC_N0,	SC_NDC,	SC_N2,	SC_N5,
+	SC_N6,	SC_N8,	SC_ESC,	SC_NLK,	SC_F11,	SC_NAD,	SC_N3,	SC_NSB,
+	SC_NML,	SC_N9,	SC_SLK,	0x0000,	0x0000,	0x0000,	0x0000,	SC_F7,
+
+	0x0000,	SC_RAL,	0x0000,	0x0000,	SC_RCT,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	SC_S1,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	SC_S2,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	SC_PWR,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	SC_SLP,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	SC_NDV,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	SC_NRT,	0x0000,
+	0x0000,	0x0000,	SC_WKE,	0x0000,	0x0000,	SC_END,	0x0000,	SC_LFT,
+	SC_HME,	0x0000,	0x0000,	0x0000,	SC_INS,	SC_DEL,	SC_DWN,	0x0000,
+	SC_RHT,	SC_UP,	0x0000,	0x0000,	0x0000,	0x0000,	SC_PGD,	0x0000,
+	0x0000,	SC_PGU,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,	0x0000,
+};
+const DWORD *scancode_set = scancode_set1;
+//0xE0, 0x12, 0xE0, 0x7C							print screen pressed
+//0xE1, 0x14, 0x77, 0xE1, 0xF0, 0x14, 0xF0, 0x77	pause pressed
+
+const DWORD qwerty[] = {
+	0x80,	KB_N1,	KB_N2,	KB_N3,	KB_N4,	KB_N5,	KB_N6,	KB_N7,	KB_N8,	KB_N9,	KB_N0,	KB_NDC,	KB_NRT,	KB_NAD,	KB_NSB,	KB_NML,
+	KB_ESC,	KB_F1,	KB_F2,	KB_F3,	KB_F4,	KB_F5,	KB_F6,	KB_F7,	KB_F8,	KB_F9,	KB_F10,	KB_F11,	KB_F12,	0x9D,	KB_NDV,	KB_NLK,
+	'`',	'1',	'2',	'3',	'4',	'5',	'6',	'7',	'8',	'9',	'0',	'-',	'=',	'\\',	'\b',	0xAF,
+	'\t',	'q',	'w',	'e',	'r',	't',	'y',	'u',	'i',	'o',	'p',	'[',	']',	KB_SLP,	KB_WKE,	KB_PWR,
+	KB_CLK,	'a',	's',	'd',	'f',	'g',	'h',	'j',	'k',	'l',	';',	'\'',	'\r',	KB_SCR,	KB_SLK,	KB_BRK,
+	KB_LSH,	'z',	'x',	'c',	'v',	'b',	'n',	'm',	',',	'.',	'/',	KB_RSH,	0xDC,	KB_INS,	KB_HME,	KB_PGU,
+	KB_LCT,	KB_S1,	KB_LAL,	' ',	KB_RAL,	KB_S2,	KB_S3,	KB_RCT,	0xE8,	KB_UP,	KB_LFT,	KB_DWN,	KB_RHT,	KB_DEL,	KB_END,	KB_PGD,
+ 	0xF0,	0xF1,	0xF2,	0xF3,	0xF4,	0xF5,	0xF6,	0xF7,	0xF8,	0xF9,	0xFA,	0xFB,	0xFC,	0xFD,	0xFE,	0xFF,
+
+	0x80,	KB_N1,	KB_N2,	KB_N3,	KB_N4,	KB_N5,	KB_N6,	KB_N7,	KB_N8,	KB_N9,	KB_N0,	KB_NDC,	KB_NRT,	KB_NAD,	KB_NSB,	KB_NML,
+	KB_ESC,	KB_F1,	KB_F2,	KB_F3,	KB_F4,	KB_F5,	KB_F6,	KB_F7,	KB_F8,	KB_F9,	KB_F10,	KB_F11,	KB_F12,	0x9D,	KB_NDV,	KB_NLK,
+	'~',	'!',	'@',	'#',	'$',	'%',	'^',	'&',	'*',	'(',	')',	'_',	'+',	'|',	'\b',	0xAF,
+	'\t',	'Q',	'W',	'E',	'R',	'T',	'Y',	'U',	'I',	'O',	'P',	'{',	'}',	KB_SLP,	KB_WKE,	KB_PWR,
+	KB_CLK,	'A',	'S',	'D',	'F',	'G',	'H',	'J',	'K',	'L',	':',	'\"',	'\r',	KB_SCR,	KB_SLK,	KB_BRK,
+	KB_LSH,	'Z',	'X',	'C',	'V',	'B',	'N',	'M',	'<',	'>',	'?',	KB_RSH,	0xDC,	KB_INS,	KB_HME,	KB_PGU,
+	KB_LCT,	KB_S1,	KB_LAL,	' ',	KB_RAL,	KB_S2,	KB_S3,	KB_RCT,	0xE8,	KB_UP,	KB_LFT,	KB_DWN,	KB_RHT,	KB_DEL,	KB_END,	KB_PGD,
+ 	0xF0,	0xF1,	0xF2,	0xF3,	0xF4,	0xF5,	0xF6,	0xF7,	0xF8,	0xF9,	0xFA,	0xFB,	0xFC,	0xFD,	0xFE,	0xFF,
+};
+const DWORD *keycode_set = qwerty;
+
+
+int kb_init()
+{
+	BYTE response = 0;
+
+	outb(PORT_KB, CMD_ECHO);
+	io_wait();
+	response = inb(PORT_KB);
+	response = inb(PORT_KB);
+	if (response != CMD_ECHO) {
+		printf("\nEcho %.2X", response);
+	}
+
+	outb(PORT_KB, CMD_SCANCODE);
+	io_wait();
+	response = inb(PORT_KB);
+	response = inb(PORT_KB);
+	if (response != CMD_ACK) {
+		printf("\nSC %.2X", response);
+		return -2;
+	}
+
+	outb(PORT_KB, CMD_SC_GET);
+	io_wait();
+	response = inb(PORT_KB);
+	response = inb(PORT_KB);
+	if (response != 0x41 && response != 0x01) {
+		printf("\nSC_GET %.2X", response);
+		return -3;
+	}
+
+	return 0;
+}
+
+char keys[256] = { 0 };
+void kb_send_keydown(unsigned char scancode)
+{
+	BYTE key = keycode_set[scancode_set[scancode]];
+	if (keys[key] < 0xFF)
+		keys[key]++;
+
+	if ((key >= ' ' && key <= '~') || key == '\t' || key == '\r' || key == '\b') {
+		if (keys[KB_LSH] || keys[KB_RSH])
+			key = keycode_set[scancode_set[scancode] + 0X80];
+		putchar(key);
+	}
+}
+
+void kb_send_keyup(unsigned char scancode)
+{
+	BYTE key = keycode_set[scancode_set[scancode - 0x80]];
+	keys[key] = 0;
+}
+
+int kb_getkeycode(unsigned char scancode)
+{
+	return keycode_set[scancode_set[scancode]];
+}
+
+int kb_getkey(unsigned char keycode)
+{
+	return keys[keycode];
+}
